@@ -54,14 +54,13 @@ async function getDataFromAPI(req, res) {
 
 // get myfav from database
 //http://localhost:3003/myfav/:email
-server.get('/myfav/:email ', getMyFav);
-
+server.get('/myfav/:email', getMyFav);
 function getMyFav(req, res) {
     console.log('yyyyyyyyyyyyyyyyy')
     const userEmail = req.params.email;
     UserModel.find({ email: userEmail }, (err, data) => {
         if (err) {
-            res.status(404).send("ERROR");
+            res.send("ERROR");
         } else {
             console.log(data);
             res.send(data)
@@ -69,7 +68,7 @@ function getMyFav(req, res) {
     })
 }
 
-server.post('/addtomyfav/:email ', addToMyFav);
+server.post('/addtomyfav/:email', addToMyFav);
 
 function addToMyFav(req, res) {
     const userEmail = req.params.email;
@@ -77,17 +76,66 @@ function addToMyFav(req, res) {
     const newUser = new UserModel({
         email: userEmail,
         name: name,
-        iamge: image,
+        image: image,
     })
     newUser.save();
     UserModel.find({ email: userEmail }, (err, data) => {
         if (err) {
             res.status(404).send("ERROR");
         } else {
-            console.log(data);
+            // console.log(data);
             res.send(data)
         }
     })
+}
+
+
+server.delete('/deletefrommyfav/:photoId', deleteFromToMyFav);
+
+function deleteFromToMyFav(req, res) {
+    const userEmail = req.query.email;
+    // const ID = req.params.photoId
+    UserModel.deleteOne({ _id: req.params.photoId }, (err, data) => {
+        if (err) {
+            res.status(404).send("error");
+        } else {
+            UserModel.find({ email: userEmail }, (err, data) => {
+                if (err) {
+                    res.status(404).send("ERROR");
+                } else {
+                    // console.log(data);
+                    res.send(data)
+                }
+            })
+        }
+    })
+
+}
+
+
+server.put('/updatemyfav/:photoId', updateMyFav);
+
+function updateMyFav(req, res) {
+    const userEmail = req.query.email;
+    // const ID = req.params.photoId
+    const { name, image } = req.body;
+    UserModel.findOne({ _id: req.params.photoId }, (err, data) => {
+        const email = userEmail;
+        const name = data.name;
+        const image = data.image;
+        data.save()
+            .then(() => {
+                UserModel.find({ email: userEmail }, (err, data) => {
+                    if (err) {
+                        res.status(404).send("ERROR");
+                    } else {
+                        // console.log(data);
+                        res.send(data)
+                    }
+                })
+            })
+    })
+
 }
 
 
